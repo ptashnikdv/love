@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Буська</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500;1,600&family=Manrope:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-1: #fff6f8;
+    --bg-2: #ffe0ea;
+    --bg-3: #ffc9dc;
+    --heart-1: #ff9bbb;
+    --heart-2: #f43f6d;
+    --heart-3: #c81346;
+    --text-rose: #9c1249;
+    --text-soft: #b8477a;
+    --paper: #fffdfd;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  html, body{ height:100%; }
+
+  body{
+    font-family: 'Manrope', sans-serif;
+    background:
+      radial-gradient(ellipse 70% 55% at 50% 38%, var(--bg-3) 0%, transparent 60%),
+      radial-gradient(ellipse at 50% 20%, var(--bg-2) 0%, var(--bg-1) 70%);
+    min-height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    overflow:hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .stage{
+    position:relative;
+    width:min(92vw, 560px);
+    height:min(92vw, 560px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  /* soft breathing aura behind the heart */
+  .aura{
+    position:absolute;
+    width: 300px;
+    height: 300px;
+    border-radius:50%;
+    background: radial-gradient(circle, rgba(244,63,109,0.35) 0%, rgba(244,63,109,0) 68%);
+    filter: blur(6px);
+    animation: aura-pulse 1.8s ease-in-out infinite;
+    pointer-events:none;
+  }
+
+  @keyframes aura-pulse{
+    0%, 100% { transform: scale(0.9); opacity: 0.6; }
+    50% { transform: scale(1.12); opacity: 1; }
+  }
+
+  .heart-wrap{
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  .heart-btn{
+    background:none;
+    border:none;
+    cursor:pointer;
+    padding: 18px;
+    -webkit-tap-highlight-color: transparent;
+    width: 190px;
+    height: 190px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius: 50%;
+    animation: beat 1.8s ease-in-out infinite, settle-in 0.9s cubic-bezier(.2,.8,.3,1) both;
+    transition: filter 0.3s ease;
+  }
+
+  .heart-btn:hover{ animation-duration: 1s, 0.9s; }
+  .heart-btn:focus-visible{
+    outline: 2px solid var(--text-rose);
+    outline-offset: 6px;
+  }
+
+  .heart-btn svg{
+    width:100%;
+    height:100%;
+    overflow: visible;
+    filter: drop-shadow(0 14px 26px rgba(200, 19, 70, 0.4));
+  }
+
+  @keyframes settle-in{
+    0%{ transform: scale(0.3); opacity: 0; }
+    100%{ transform: scale(1); opacity: 1; }
+  }
+
+  @keyframes beat{
+    0%, 100% { transform: scale(1); }
+    14% { transform: scale(1.1); }
+    28% { transform: scale(0.96); }
+    42% { transform: scale(1.06); }
+    60% { transform: scale(1); }
+  }
+
+  .hint{
+    position:absolute;
+    bottom: -50px;
+    left:50%;
+    transform: translateX(-50%);
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size: 14px;
+    color: var(--text-soft);
+    opacity: 0;
+    white-space: nowrap;
+    animation: hint-in 0.8s ease 1.1s forwards, hint-pulse 2.6s ease-in-out 1.9s infinite;
+  }
+
+  .hint svg{ width:12px; height:12px; flex-shrink:0; }
+
+  @keyframes hint-in{ to{ opacity: 0.65; } }
+  @keyframes hint-pulse{
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.75; }
+  }
+
+  /* ----- clicked / revealed state ----- */
+  .stage.clicked .heart-btn{
+    animation: none;
+    transform: scale(0.2) rotate(-14deg);
+    opacity: 0;
+    transition: transform 0.7s cubic-bezier(.6,0,.7,1), opacity 0.55s ease;
+  }
+
+  .stage.clicked .aura{
+    animation: none;
+    transform: scale(2.6);
+    opacity: 0;
+    transition: transform 0.9s ease, opacity 0.9s ease;
+  }
+
+  .stage.clicked .hint{
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    animation: none;
+  }
+
+  .message{
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    opacity:0;
+    pointer-events:none;
+    gap: 18px;
+  }
+
+  .stage.clicked .message{
+    opacity:1;
+    pointer-events:auto;
+    transition: opacity 0.7s ease 0.4s;
+  }
+
+  .message h1{
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: clamp(30px, 6.4vw, 54px);
+    color: var(--text-rose);
+    line-height: 1.32;
+    max-width: 11ch;
+    letter-spacing: 0.005em;
+    opacity:0;
+    transform: translateY(16px) scale(0.97);
+  }
+
+  .stage.clicked .message h1{
+    animation: rise 0.85s cubic-bezier(.16,.8,.24,1) 0.6s forwards;
+  }
+
+  @keyframes rise{
+    to{ opacity:1; transform: translateY(0) scale(1); }
+  }
+
+  .message .flourish{
+    width: 26px;
+    height: 26px;
+    opacity: 0;
+    transform: translateY(10px) scale(0.6);
+    color: var(--heart-2);
+  }
+
+  .stage.clicked .message .flourish{
+    animation: rise-flourish 0.7s cubic-bezier(.2,.8,.3,1) 1.05s forwards;
+  }
+
+  @keyframes rise-flourish{
+    to{ opacity: 0.85; transform: translateY(0) scale(1); }
+  }
+
+  .replay{
+    margin-top: 4px;
+    background:none;
+    border:none;
+    cursor:pointer;
+    font-family:'Manrope', sans-serif;
+    font-size: 13px;
+    color: var(--text-soft);
+    opacity:0;
+    padding: 6px 10px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+
+  .replay svg{ width:12px; height:12px; }
+
+  .stage.clicked .replay{
+    animation: hint-in 0.8s ease 1.6s forwards, hint-pulse 2.6s ease-in-out 2.4s infinite;
+  }
+
+  .replay:hover{ color: var(--text-rose); }
+  .replay:focus-visible{ outline: 2px solid var(--text-rose); outline-offset: 4px; }
+
+  /* burst particles */
+  .burst-layer{
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+  }
+
+  .bit{
+    position:absolute;
+    top:50%;
+    left:50%;
+    width: var(--size);
+    height: var(--size);
+    opacity:0;
+    color: var(--heart-2);
+  }
+
+  .stage.clicked .bit{
+    animation: burst 1.5s cubic-bezier(.2,.6,.3,1) forwards;
+    animation-delay: var(--delay);
+  }
+
+  @keyframes burst{
+    0%{
+      opacity: 0;
+      transform: translate(-50%,-50%) scale(0.3) rotate(0deg);
+    }
+    12%{
+      opacity: 0.95;
+    }
+    100%{
+      opacity: 0;
+      transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1) rotate(var(--rot));
+    }
+  }
+
+  .bit svg{ width:100%; height:100%; }
+
+  @media (max-width: 420px){
+    .heart-btn{ width: 150px; height:150px; }
+    .aura{ width: 230px; height:230px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .heart-btn, .aura, .bit{ animation: none !important; }
+    .stage.clicked .heart-btn{ transition: opacity 0.4s ease; transform: scale(1); }
+    .message h1, .message .flourish, .hint, .replay{ animation: none !important; }
+    .stage.clicked .message h1, .stage.clicked .message .flourish{ opacity:1; transform:none; }
+    .stage.clicked .hint, .stage.clicked .replay{ opacity: 0.65; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stage" id="stage">
+
+  <div class="aura" aria-hidden="true"></div>
+
+  <div class="heart-wrap">
+    <button class="heart-btn" id="heartBtn" aria-label="Нажми на сердце">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="heartGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="var(--heart-1)"/>
+            <stop offset="100%" stop-color="var(--heart-3)"/>
+          </linearGradient>
+        </defs>
+        <path d="M12,21.35 L10.55,20.03
+                 C5.4,15.36 2,12.28 2,8.5
+                 C2,5.42 4.42,3 7.5,3
+                 C9.24,3 10.91,3.81 12,5.09
+                 C13.09,3.81 14.76,3 16.5,3
+                 C19.58,3 22,5.42 22,8.5
+                 C22,12.28 18.6,15.36 13.45,20.04 L12,21.35 Z"
+              fill="url(#heartGrad)"/>
+      </svg>
+    </button>
+  </div>
+
+  <span class="hint">
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12,21.35 L10.55,20.03 C5.4,15.36 2,12.28 2,8.5 C2,5.42 4.42,3 7.5,3 C9.24,3 10.91,3.81 12,5.09 C13.09,3.81 14.76,3 16.5,3 C19.58,3 22,5.42 22,8.5 C22,12.28 18.6,15.36 13.45,20.04 L12,21.35 Z"/></svg>
+    нажми на сердце
+  </span>
+
+  <div class="burst-layer" id="burstLayer" aria-hidden="true"></div>
+
+  <div class="message">
+    <svg class="flourish" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12,21.35 L10.55,20.03 C5.4,15.36 2,12.28 2,8.5 C2,5.42 4.42,3 7.5,3 C9.24,3 10.91,3.81 12,5.09 C13.09,3.81 14.76,3 16.5,3 C19.58,3 22,5.42 22,8.5 C22,12.28 18.6,15.36 13.45,20.04 L12,21.35 Z"/></svg>
+    <h1>Я люблю тебя,<br>буська</h1>
+    <button class="replay" id="replayBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M20 11A8 8 0 1 0 6 5.3M20 4v6h-6"/></svg>
+      ещё раз
+    </button>
+  </div>
+
+</div>
+
+<script>
+  const stage = document.getElementById('stage');
+  const heartBtn = document.getElementById('heartBtn');
+  const replayBtn = document.getElementById('replayBtn');
+  const burstLayer = document.getElementById('burstLayer');
+
+  const heartPath = 'M12,21.35 L10.55,20.03 C5.4,15.36 2,12.28 2,8.5 C2,5.42 4.42,3 7.5,3 C9.24,3 10.91,3.81 12,5.09 C13.09,3.81 14.76,3 16.5,3 C19.58,3 22,5.42 22,8.5 C22,12.28 18.6,15.36 13.45,20.04 L12,21.35 Z';
+  const sparkPath = 'M12,0 L14,10 24,12 14,14 12,24 10,14 0,12 10,10 Z';
+
+  function buildBurst(){
+    burstLayer.innerHTML = '';
+    const count = 16;
+    for (let i = 0; i < count; i++){
+      const isSpark = i % 4 === 0;
+      const el = document.createElement('div');
+      el.className = 'bit';
+      const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.5;
+      const dist = 120 + Math.random() * 150;
+      const size = isSpark ? (8 + Math.random() * 6) : (10 + Math.random() * 16);
+      el.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+      el.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+      el.style.setProperty('--rot', (Math.random() > 0.5 ? 1 : -1) * (180 + Math.random() * 260) + 'deg');
+      el.style.setProperty('--size', size + 'px');
+      el.style.setProperty('--delay', (0.1 + Math.random() * 0.25) + 's');
+      el.style.opacity = String(0.6 + Math.random() * 0.4);
+      el.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="${isSpark ? sparkPath : heartPath}"/>
+        </svg>`;
+      burstLayer.appendChild(el);
+    }
+  }
+
+  function reveal(){
+    buildBurst();
+    stage.classList.add('clicked');
+  }
+
+  function reset(){
+    stage.classList.remove('clicked');
+    burstLayer.innerHTML = '';
+    // restart heart entrance + beat animation
+    heartBtn.style.animation = 'none';
+    void heartBtn.offsetWidth;
+    heartBtn.style.animation = '';
+  }
+
+  heartBtn.addEventListener('click', reveal);
+  replayBtn.addEventListener('click', reset);
+</script>
+
+</body>
+</html>
